@@ -111,8 +111,8 @@ export function Dashboard() {
                     {isComplete && <CheckCircle className="w-4 h-4 text-success" />}
                     {isRevision && <AlertTriangle className="w-4 h-4 text-warning" />}
                   </div>
-                  <h3 className="font-semibold text-text-primary">{day.title}</h3>
-                  <p className="text-sm text-text-muted mt-1">{day.subtitle}</p>
+                  <h3 className="font-semibold text-text-primary">{lang === 'ar' ? day.titleAr : day.title}</h3>
+                  <p className="text-sm text-text-muted mt-1">{lang === 'ar' ? day.subtitleAr : day.subtitle}</p>
                   {progress.dailyScore > 0 && (
                     <p className="text-sm text-accent mt-2">{t('score', lang)}: {progress.dailyScore}%</p>
                   )}

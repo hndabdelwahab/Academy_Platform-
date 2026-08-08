@@ -27,11 +27,31 @@ export function DictionaryPage() {
     updateTermMastery(key, next);
   };
 
+  const labels = lang === 'ar'
+    ? {
+        subtitle: 'مصطلحات المطوّر المهنية في سياق ERP',
+        simple: 'المعنى البسيط',
+        professional: 'التعريف المهني',
+        example: 'مثال',
+        erp: 'مثال ERP',
+        odoo: 'الربط مع Odoo',
+        related: 'مصطلحات ذات صلة',
+      }
+    : {
+        subtitle: 'Professional developer terminology with ERP context',
+        simple: 'Simple Meaning',
+        professional: 'Professional Definition',
+        example: 'Example',
+        erp: 'ERP Example',
+        odoo: 'Odoo Connection',
+        related: 'Related Terms',
+      };
+
   return (
     <div className="max-w-4xl mx-auto space-y-4">
       <div>
         <h1 className="text-2xl font-bold text-text-primary">{t('dictionary', lang)}</h1>
-        <p className="text-text-secondary mt-1">Professional developer terminology with ERP context</p>
+        <p className="text-text-secondary mt-1">{labels.subtitle}</p>
       </div>
 
       <div className="relative">
@@ -48,16 +68,18 @@ export function DictionaryPage() {
         {terms.map((term) => {
           const mastery = terminologyMastery[term.key] ?? 'unknown';
           const isExpanded = expanded === term.key;
+          const termName = lang === 'ar' && term.termAr ? term.termAr : term.term;
+          const category = lang === 'ar' && term.categoryAr ? term.categoryAr : term.category;
 
           return (
             <div key={term.key} className="card">
               <button
                 onClick={() => setExpanded(isExpanded ? null : term.key)}
-                className="w-full flex items-center justify-between text-left"
+                className="w-full flex items-center justify-between text-start"
               >
                 <div>
-                  <span className="font-semibold text-text-primary">{term.term}</span>
-                  <span className="text-xs text-text-muted ml-2">{term.category}</span>
+                  <span className="font-semibold text-text-primary">{termName}</span>
+                  <span className="text-xs text-text-muted ms-2">{category}</span>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); cycleMastery(term.key); }}
@@ -69,13 +91,18 @@ export function DictionaryPage() {
 
               {isExpanded && (
                 <div className="mt-4 space-y-3 text-sm border-t border-border pt-4">
-                  <Block label="Simple Meaning" text={term.simpleMeaning} />
-                  <Block label="Professional Definition" text={term.professionalDefinition} />
-                  <Block label="Example" text={term.example} />
-                  <Block label="ERP Example" text={term.erpExample} />
-                  {term.odooExample && <Block label="Odoo Connection" text={term.odooExample} />}
+                  <Block label={labels.simple} text={lang === 'ar' && term.simpleMeaningAr ? term.simpleMeaningAr : term.simpleMeaning} />
+                  <Block label={labels.professional} text={lang === 'ar' && term.professionalDefinitionAr ? term.professionalDefinitionAr : term.professionalDefinition} />
+                  <Block label={labels.example} text={lang === 'ar' && term.exampleAr ? term.exampleAr : term.example} />
+                  <Block label={labels.erp} text={lang === 'ar' && term.erpExampleAr ? term.erpExampleAr : term.erpExample} />
+                  {(term.odooExample || term.odooExampleAr) && (
+                    <Block
+                      label={labels.odoo}
+                      text={lang === 'ar' && term.odooExampleAr ? term.odooExampleAr : (term.odooExample ?? '')}
+                    />
+                  )}
                   <div>
-                    <span className="content-label">Related Terms</span>
+                    <span className="content-label">{labels.related}</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {term.relatedTerms.map((rt) => (
                         <span key={rt} className="badge bg-surface-hover text-text-secondary">{rt}</span>
