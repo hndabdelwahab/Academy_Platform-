@@ -9,6 +9,7 @@ import { OutputPanel } from '@/components/editor/OutputPanel';
 import { runPython } from '@/python/pyodide-runner';
 import { gradeCodeReading, runPythonTests, getProgressionStatus } from '@/engine/scoring';
 import { t } from '@/i18n';
+import { pickLang } from '@/curriculum/localize';
 import {
   BookOpen, Code2, Bug, Eye, HelpCircle, FileCheck, ArrowLeft,
   CheckCircle, Lightbulb,
@@ -42,12 +43,22 @@ export function DayPage() {
   if (!isDayFullyBuilt(dayNumber)) {
     return (
       <div className="max-w-3xl mx-auto card text-center py-12">
-        <h2 className="text-xl font-bold">Day {dayNumber}: {curriculum.title}</h2>
-        <p className="text-text-secondary mt-2">Full interactive content for this day will be available in the next implementation phase.</p>
-        <Link to="/roadmap" className="btn-primary mt-4 inline-block">Back to Roadmap</Link>
+        <h2 className="text-xl font-bold">
+          {t('day', lang)} {dayNumber}: {lang === 'ar' && curriculum.titleAr ? curriculum.titleAr : curriculum.title}
+        </h2>
+        <p className="text-text-secondary mt-2">
+          {lang === 'ar'
+            ? 'المحتوى التفاعلي الكامل لهذا اليوم سيكون متاحًا في مرحلة التنفيذ التالية.'
+            : 'Full interactive content for this day will be available in the next implementation phase.'}
+        </p>
+        <Link to="/roadmap" className="btn-primary mt-4 inline-block">{lang === 'ar' ? 'العودة للخارطة' : 'Back to Roadmap'}</Link>
       </div>
     );
   }
+
+  const title = lang === 'ar' && curriculum.titleAr ? curriculum.titleAr : curriculum.title;
+  const subtitle = lang === 'ar' && curriculum.subtitleAr ? curriculum.subtitleAr : curriculum.subtitle;
+  const objectives = lang === 'ar' && curriculum.objectivesAr ? curriculum.objectivesAr : curriculum.objectives;
 
   const tabs: { id: Tab; label: string; icon: typeof BookOpen }[] = [
     { id: 'lesson', label: t('lesson', lang), icon: BookOpen },
@@ -66,15 +77,15 @@ export function DayPage() {
         <Link to="/roadmap" className="btn-ghost"><ArrowLeft className="w-4 h-4" /></Link>
         <div>
           <p className="text-xs text-accent font-medium">{t('day', lang)} {dayNumber}</p>
-          <h1 className="text-xl font-bold text-text-primary">{curriculum.title}</h1>
-          <p className="text-sm text-text-muted">{curriculum.subtitle}</p>
+          <h1 className="text-xl font-bold text-text-primary">{title}</h1>
+          <p className="text-sm text-text-muted">{subtitle}</p>
         </div>
       </div>
 
       <div className="card">
         <h3 className="text-sm font-semibold text-text-primary mb-2">{t('objectives', lang)}</h3>
         <ul className="space-y-1">
-          {curriculum.objectives.map((obj, i) => (
+          {objectives.map((obj, i) => (
             <li key={i} className="text-sm text-text-secondary flex items-start gap-2">
               <CheckCircle className="w-4 h-4 text-accent shrink-0 mt-0.5" />
               {obj}
@@ -101,13 +112,15 @@ export function DayPage() {
       {activeTab === 'lesson' && section && (
         <div>
           <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
-            Section {sectionIndex + 1} of {curriculum.sections.length}
+            {lang === 'ar'
+              ? `القسم ${sectionIndex + 1} من ${curriculum.sections.length}`
+              : `Section ${sectionIndex + 1} of ${curriculum.sections.length}`}
             {dayProgress.sectionProgress[section.id] && (
               <CheckCircle className="w-4 h-4 text-success" />
             )}
           </div>
           <TheorySection
-            title={section.title}
+            title={lang === 'ar' && section.titleAr ? section.titleAr : section.title}
             content={section.content}
             requiresAnswer={section.requiresAnswer}
             sectionId={section.id}
@@ -126,14 +139,14 @@ export function DayPage() {
               disabled={sectionIndex === 0}
               className="btn-secondary"
             >
-              Previous Section
+              {lang === 'ar' ? 'القسم السابق' : 'Previous Section'}
             </button>
             <button
               onClick={() => setSectionIndex(Math.min(curriculum.sections.length - 1, sectionIndex + 1))}
               disabled={sectionIndex === curriculum.sections.length - 1}
               className="btn-secondary"
             >
-              Next Section
+              {lang === 'ar' ? 'القسم التالي' : 'Next Section'}
             </button>
           </div>
         </div>
@@ -231,23 +244,25 @@ function CodeReadingTab({
   return (
     <div className="space-y-4">
       <div className="card">
-        <h2 className="text-lg font-bold">{exercise.title}</h2>
-        <p className="text-text-secondary mt-1">{exercise.description}</p>
+        <h2 className="text-lg font-bold">{pickLang(lang, exercise.title, exercise.titleAr)}</h2>
+        <p className="text-text-secondary mt-1">{pickLang(lang, exercise.description, exercise.descriptionAr)}</p>
       </div>
       <CodeEditor value={exercise.code} language={exercise.language} readOnly height="350px" />
       {exercise.questions.map((q) => (
         <div key={q.id} className="card">
-          <p className="font-medium text-text-primary mb-2">{q.question}</p>
+          <p className="font-medium text-text-primary mb-2">{pickLang(lang, q.question, q.questionAr)}</p>
           <textarea
             className="input-field min-h-[80px] font-mono text-sm"
             value={answers[q.id] ?? ''}
             onChange={(e) => setAnswers((p) => ({ ...p, [q.id]: e.target.value }))}
             disabled={submitted}
-            placeholder="Read the code and answer based on what you see..."
+            placeholder={lang === 'ar' ? 'اقرأ الشيفرة وأجب بناءً على ما تراه...' : 'Read the code and answer based on what you see...'}
           />
           {submitted && (
             <div className="mt-2 p-3 bg-surface rounded-md text-sm">
-              <p className="text-accent font-medium">{t('modelAnswer', 'en')}: {q.modelAnswer}</p>
+              <p className="text-accent font-medium">
+                {t('modelAnswer', lang)}: {pickLang(lang, q.modelAnswer, q.modelAnswerAr)}
+              </p>
             </div>
           )}
         </div>
@@ -258,7 +273,7 @@ function CodeReadingTab({
           disabled={exercise.questions.some((q) => !(answers[q.id]?.trim()))}
           className="btn-primary"
         >
-          Submit Code Reading Answers
+          {lang === 'ar' ? 'إرسال إجابات قراءة الشيفرة' : 'Submit Code Reading Answers'}
         </button>
       )}
       {submitted && <p className="text-accent font-bold">{t('score', lang)}: {score}%</p>}
@@ -273,6 +288,7 @@ function ChallengeTab({
   challenges: DayCurriculum['challenges'];
   onComplete: (score: number) => void;
 }) {
+  const lang = useProgressStore((s) => s.settings.language);
   const [activeChallenge, setActiveChallenge] = useState(0);
   const [code, setCode] = useState(challenges[0]?.starterCode ?? '');
   const [output, setOutput] = useState('');
@@ -284,6 +300,7 @@ function ChallengeTab({
 
   const challenge = challenges[activeChallenge];
   if (!challenge) return null;
+  const hints = pickLang(lang, challenge.hints, challenge.hintsAr) ?? challenge.hints;
 
   const runCode = async () => {
     setRunning(true);
@@ -315,32 +332,34 @@ function ChallengeTab({
             onClick={() => { setActiveChallenge(i); setCode(c.starterCode); setShowHint(false); setHintIndex(0); }}
             className={`badge ${i === activeChallenge ? 'bg-accent text-white' : completed[i] ? 'bg-success/20 text-success' : 'bg-surface-hover text-text-secondary'}`}
           >
-            {c.title}
+            {pickLang(lang, c.title, c.titleAr)}
           </button>
         ))}
       </div>
       <div className="card">
-        <h3 className="font-bold">{challenge.title}</h3>
-        <p className="text-text-secondary mt-1">{challenge.description}</p>
-        {challenge.erpContext && (
+        <h3 className="font-bold">{pickLang(lang, challenge.title, challenge.titleAr)}</h3>
+        <p className="text-text-secondary mt-1">{pickLang(lang, challenge.description, challenge.descriptionAr)}</p>
+        {(challenge.erpContext || challenge.erpContextAr) && (
           <p className="text-sm text-accent mt-2 flex items-start gap-1">
-            <Lightbulb className="w-4 h-4 shrink-0" /> {challenge.erpContext}
+            <Lightbulb className="w-4 h-4 shrink-0" /> {pickLang(lang, challenge.erpContext, challenge.erpContextAr)}
           </p>
         )}
       </div>
       <CodeEditor value={code} onChange={setCode} language="python" height="300px" />
       <div className="flex gap-2">
-        <button onClick={runCode} disabled={running} className="btn-primary">Run & Test</button>
+        <button onClick={runCode} disabled={running} className="btn-primary">
+          {lang === 'ar' ? 'تشغيل واختبار' : 'Run & Test'}
+        </button>
         <button
-          onClick={() => { setShowHint(true); setHintIndex((i) => Math.min(i + 1, challenge.hints.length)); }}
+          onClick={() => { setShowHint(true); setHintIndex((i) => Math.min(i + 1, hints.length)); }}
           className="btn-secondary"
         >
-          Hint ({hintIndex}/{challenge.hints.length})
+          {lang === 'ar' ? `تلميح (${hintIndex}/${hints.length})` : `Hint (${hintIndex}/${hints.length})`}
         </button>
       </div>
       {showHint && hintIndex > 0 && (
         <div className="card border-warning/30 text-sm text-text-secondary">
-          {challenge.hints[hintIndex - 1]}
+          {hints[hintIndex - 1]}
         </div>
       )}
       <OutputPanel output={output} error={error} loading={running} />
@@ -355,6 +374,7 @@ function DebugTab({
   challenge: DayCurriculum['debuggingChallenge'];
   onComplete: (score: number) => void;
 }) {
+  const lang = useProgressStore((s) => s.settings.language);
   const [selectedSteps, setSelectedSteps] = useState<string[]>([]);
   const [showFix, setShowFix] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -381,36 +401,42 @@ function DebugTab({
     <div className="space-y-4">
       <div className="card border-danger/30">
         <h3 className="font-bold flex items-center gap-2">
-          <Bug className="w-5 h-5 text-danger" /> {challenge.title}
+          <Bug className="w-5 h-5 text-danger" /> {pickLang(lang, challenge.title, challenge.titleAr)}
         </h3>
-        <p className="text-text-secondary mt-2">{challenge.scenario}</p>
+        <p className="text-text-secondary mt-2">{pickLang(lang, challenge.scenario, challenge.scenarioAr)}</p>
       </div>
       <CodeEditor value={challenge.brokenCode} language="python" readOnly height="300px" />
       <div className="card border-danger/30">
         <p className="font-mono text-sm text-danger">{challenge.errorMessage}</p>
-        <p className="text-sm text-text-muted mt-1">Error Type: {challenge.errorType}</p>
+        <p className="text-sm text-text-muted mt-1">
+          {lang === 'ar' ? 'نوع الخطأ:' : 'Error Type:'} {challenge.errorType}
+        </p>
       </div>
       <div className="card">
-        <h4 className="font-semibold mb-3">Select your investigation steps (in order you would perform them):</h4>
+        <h4 className="font-semibold mb-3">
+          {lang === 'ar'
+            ? 'اختر خطوات التحقيق (بالترتيب الذي ستنفّذها به):'
+            : 'Select your investigation steps (in order you would perform them):'}
+        </h4>
         <div className="space-y-2">
           {challenge.investigationSteps.map((step) => (
             <button
               key={step.action}
               onClick={() => toggleStep(step.action)}
               disabled={submitted}
-              className={`w-full text-left px-4 py-3 rounded-md border text-sm transition-colors ${
+              className={`w-full text-start px-4 py-3 rounded-md border text-sm transition-colors ${
                 selectedSteps.includes(step.action)
                   ? 'border-accent bg-accent-muted'
                   : 'border-border hover:border-accent/50'
               }`}
             >
-              {step.action}
+              {pickLang(lang, step.action, step.actionAr)}
             </button>
           ))}
         </div>
         {!submitted && (
           <button onClick={handleSubmit} disabled={selectedSteps.length === 0} className="btn-primary mt-4">
-            Submit Investigation
+            {lang === 'ar' ? 'إرسال التحقيق' : 'Submit Investigation'}
           </button>
         )}
       </div>
@@ -418,15 +444,19 @@ function DebugTab({
         <div className="space-y-3">
           {challenge.investigationSteps.map((step) => (
             <div key={step.action} className={`card text-sm ${step.isOptimal ? 'border-success/30' : ''}`}>
-              <p className="font-medium">{step.action}</p>
-              <p className="text-text-secondary mt-1">{step.result}</p>
+              <p className="font-medium">{pickLang(lang, step.action, step.actionAr)}</p>
+              <p className="text-text-secondary mt-1">{pickLang(lang, step.result, step.resultAr)}</p>
             </div>
           ))}
-          <button onClick={() => setShowFix(!showFix)} className="btn-secondary">Show Fix</button>
+          <button onClick={() => setShowFix(!showFix)} className="btn-secondary">
+            {lang === 'ar' ? (showFix ? 'إخفاء الإصلاح' : 'عرض الإصلاح') : (showFix ? 'Hide Fix' : 'Show Fix')}
+          </button>
           {showFix && (
             <div className="card border-success/30">
               <CodeEditor value={challenge.fix} language="python" readOnly height="100px" />
-              <p className="text-sm text-text-secondary mt-2">{challenge.explanation}</p>
+              <p className="text-sm text-text-secondary mt-2">
+                {pickLang(lang, challenge.explanation, challenge.explanationAr)}
+              </p>
             </div>
           )}
         </div>

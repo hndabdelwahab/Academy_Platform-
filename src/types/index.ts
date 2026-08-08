@@ -107,10 +107,13 @@ export interface PersonalizedDay {
 export interface DayCurriculum {
   dayNumber: number;
   title: string;
+  titleAr?: string;
   subtitle: string;
+  subtitleAr?: string;
   topics: TopicKey[];
   estimatedHours: number;
   objectives: string[];
+  objectivesAr?: string[];
   sections: LessonSection[];
   codeReadingExercise: CodeReadingExercise;
   challenges: CodingChallenge[];
@@ -124,6 +127,7 @@ export interface DayCurriculum {
 export interface LessonSection {
   id: string;
   title: string;
+  titleAr?: string;
   type: 'theory' | 'code_example' | 'interactive' | 'visual' | 'comparison' | 'erp_connection';
   content: SectionContent;
   requiresAnswer?: ActiveLearningPrompt;
@@ -143,6 +147,24 @@ export interface SectionContent {
   debugging?: DebugCase[];
   interviewTerminology?: string;
   markdown?: string;
+  /** Arabic mirror of teaching text when language is Arabic. */
+  ar?: SectionContentLocale;
+}
+
+export interface SectionContentLocale {
+  simpleExplanation?: string;
+  professionalDefinition?: string;
+  whyItExists?: string;
+  howItWorks?: string;
+  syntax?: SyntaxItem[];
+  erpExample?: string;
+  odooConnection?: string;
+  realProjectRecognition?: string;
+  commonMistakes?: Mistake[];
+  debugging?: DebugCase[];
+  interviewTerminology?: string;
+  markdown?: string;
+  codeExample?: CodeExample;
 }
 
 export interface SyntaxItem {
@@ -179,15 +201,20 @@ export interface DebugCase {
 
 export interface ActiveLearningPrompt {
   question: string;
+  questionAr?: string;
   type: 'predict' | 'explain' | 'identify' | 'write';
   hint?: string;
+  hintAr?: string;
   modelAnswer?: string;
+  modelAnswerAr?: string;
 }
 
 export interface CodeReadingExercise {
   id: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   code: string;
   language: string;
   questions: CodeReadingQuestion[];
@@ -196,22 +223,28 @@ export interface CodeReadingExercise {
 export interface CodeReadingQuestion {
   id: string;
   question: string;
+  questionAr?: string;
   type: 'identify' | 'explain' | 'predict' | 'find';
   modelAnswer: string;
+  modelAnswerAr?: string;
   scoringCriteria: string[];
 }
 
 export interface CodingChallenge {
   id: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   difficulty: 'foundation' | 'standard' | 'advanced';
   language: string;
   starterCode: string;
   testCases: TestCase[];
   hints: string[];
+  hintsAr?: string[];
   solution: string;
   erpContext?: string;
+  erpContextAr?: string;
 }
 
 export interface TestCase {
@@ -223,7 +256,9 @@ export interface TestCase {
 export interface DebuggingChallenge {
   id: string;
   title: string;
+  titleAr?: string;
   scenario: string;
+  scenarioAr?: string;
   brokenCode: string;
   language: string;
   errorMessage: string;
@@ -231,11 +266,14 @@ export interface DebuggingChallenge {
   investigationSteps: InvestigationStep[];
   fix: string;
   explanation: string;
+  explanationAr?: string;
 }
 
 export interface InvestigationStep {
   action: string;
+  actionAr?: string;
   result: string;
+  resultAr?: string;
   isOptimal: boolean;
   points: number;
 }
@@ -243,21 +281,30 @@ export interface InvestigationStep {
 export interface ERPScenario {
   id: string;
   title: string;
+  titleAr?: string;
   businessContext: string;
+  businessContextAr?: string;
   technicalChallenge: string;
+  technicalChallengeAr?: string;
   questions: string[];
+  questionsAr?: string[];
   connection: string;
+  connectionAr?: string;
 }
 
 export interface QuizQuestion {
   id: string;
   type: 'multiple_choice' | 'explain_code' | 'find_error' | 'predict_output' | 'write_code' | 'write_query' | 'analyze_erp' | 'identify_architecture';
   question: string;
+  questionAr?: string;
   code?: string;
   language?: string;
   options?: string[];
+  optionsAr?: string[];
   correctAnswer: string;
+  correctAnswerAr?: string;
   explanation: string;
+  explanationAr?: string;
   topic: TopicKey;
   points: number;
 }
@@ -267,13 +314,20 @@ export type TermMastery = 'unknown' | 'learning' | 'understood' | 'mastered';
 export interface Term {
   key: string;
   term: string;
+  termAr?: string;
   simpleMeaning: string;
+  simpleMeaningAr?: string;
   professionalDefinition: string;
+  professionalDefinitionAr?: string;
   example: string;
+  exampleAr?: string;
   erpExample: string;
+  erpExampleAr?: string;
   odooExample?: string;
+  odooExampleAr?: string;
   relatedTerms: string[];
   category: string;
+  categoryAr?: string;
 }
 
 export interface AssessmentQuestion {
@@ -300,7 +354,9 @@ export interface AssessmentResult {
 export interface DaySummary {
   dayNumber: number;
   title: string;
+  titleAr: string;
   subtitle: string;
+  subtitleAr: string;
   topics: TopicKey[];
   estimatedHours: number;
   week: number;

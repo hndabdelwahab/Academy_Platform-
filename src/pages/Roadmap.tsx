@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Lock, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import { useProgressStore } from '@/store/useProgress';
-import { DAY_SUMMARIES, getWeekDays } from '@/curriculum/roadmap';
+import { DAY_SUMMARIES, getWeekDays, topicLabel } from '@/curriculum/roadmap';
 import { isDayFullyBuilt } from '@/curriculum/days';
 import { t } from '@/i18n';
 
@@ -13,7 +13,9 @@ export function Roadmap() {
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
         <h1 className="text-2xl font-bold text-text-primary">{t('roadmap', lang)}</h1>
-        <p className="text-text-secondary mt-1">20-Day ERP Developer Mastery Journey</p>
+        <p className="text-text-secondary mt-1">
+          {lang === 'ar' ? 'رحلة إتقان مطوّر ERP لمدة 20 يومًا' : '20-Day ERP Developer Mastery Journey'}
+        </p>
       </div>
 
       {[1, 2, 3, 4].map((week) => (
@@ -42,15 +44,21 @@ export function Roadmap() {
                     <span className="text-xs font-bold text-accent">D{day.dayNumber}</span>
                     <div className="flex items-center gap-1">
                       {!isBuilt && day.dayNumber > 1 && (
-                        <span className="badge bg-surface-hover text-text-muted text-[10px]">Soon</span>
+                        <span className="badge bg-surface-hover text-text-muted text-[10px]">
+                          {lang === 'ar' ? 'قريبًا' : 'Soon'}
+                        </span>
                       )}
                       {isLocked && <Lock className="w-3.5 h-3.5 text-text-muted" />}
                       {isComplete && <CheckCircle className="w-3.5 h-3.5 text-success" />}
                       {isRevision && <AlertTriangle className="w-3.5 h-3.5 text-warning" />}
                     </div>
                   </div>
-                  <h3 className="font-semibold text-sm text-text-primary leading-tight">{day.title}</h3>
-                  <p className="text-xs text-text-muted mt-1">{day.subtitle}</p>
+                  <h3 className="font-semibold text-sm text-text-primary leading-tight">
+                    {lang === 'ar' ? day.titleAr : day.title}
+                  </h3>
+                  <p className="text-xs text-text-muted mt-1">
+                    {lang === 'ar' ? day.subtitleAr : day.subtitle}
+                  </p>
                   <div className="flex items-center gap-2 mt-3 text-xs text-text-muted">
                     <Clock className="w-3 h-3" />
                     {day.estimatedHours}h
@@ -69,7 +77,7 @@ export function Roadmap() {
                   <div className="flex flex-wrap gap-1 mt-2">
                     {day.topics.slice(0, 2).map((topic) => (
                       <span key={topic} className="badge bg-surface-hover text-text-muted text-[10px]">
-                        {topic.replace(/_/g, ' ')}
+                        {topicLabel(topic, lang)}
                       </span>
                     ))}
                   </div>
