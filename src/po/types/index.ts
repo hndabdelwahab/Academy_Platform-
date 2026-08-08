@@ -133,7 +133,9 @@ export interface DayCurriculum {
   keyTerminology: string[];
   sections: LessonSection[];
   productOwnerResponsibility: string[];
+  productOwnerResponsibilityAr?: string[];
   notProductOwnerResponsibility: string[];
+  notProductOwnerResponsibilityAr?: string[];
   guidedExercise: PracticeExercise;
   independentExercise: PracticeExercise;
   stakeholderScenario: DecisionScenario;
@@ -144,9 +146,12 @@ export interface DayCurriculum {
   exam: QuizQuestion[];
   interviewPrep: InterviewPrep;
   lessonSummary: string[];
+  lessonSummaryAr?: string[];
   revisionChecklist: string[];
+  revisionChecklistAr?: string[];
   additionalPractice: PracticeExercise;
   professionalFeedbackNotes: string[];
+  prerequisitesAr?: string[];
 }
 
 export interface LessonSection {
@@ -159,6 +164,44 @@ export interface LessonSection {
 }
 
 export interface SectionContent {
+  conceptIntroduction?: string;
+  simpleExplanation?: string;
+  businessProblem?: string;
+  professionalDefinition?: string;
+  whyImportant?: string;
+  lifecycleLocation?: string;
+  howItWorks?: string;
+  whoResponsible?: string;
+  whoParticipates?: string;
+  requiredInputs?: string;
+  activities?: string;
+  expectedOutputs?: string;
+  simpleExample?: string;
+  softwareExample?: string;
+  erpExample?: string;
+  workedExample?: string;
+  comparison?: string;
+  commonMisunderstandings?: string;
+  beginnerMistakes?: Mistake[];
+  workplaceMistakes?: Mistake[];
+  poorExample?: string;
+  correctExample?: string;
+  guidedPractice?: string;
+  independentPractice?: string;
+  scenarioDecision?: string;
+  reflectionQuestion?: string;
+  professionalTerminology?: string;
+  interviewQuestion?: string;
+  interviewModelAnswer?: string;
+  markdown?: string;
+  comparisonTable?: ComparisonTable;
+  processSteps?: ProcessStep[];
+  /** Arabic body for the same teaching fields when language is Arabic. */
+  ar?: SectionContentLocale;
+}
+
+/** Arabic (or other locale) mirror of section teaching text. */
+export interface SectionContentLocale {
   conceptIntroduction?: string;
   simpleExplanation?: string;
   businessProblem?: string;
@@ -213,9 +256,12 @@ export interface Mistake {
 
 export interface ActiveLearningPrompt {
   question: string;
+  questionAr?: string;
   type: 'predict' | 'explain' | 'identify' | 'write' | 'decide' | 'compare';
   hint?: string;
+  hintAr?: string;
   modelAnswer?: string;
+  modelAnswerAr?: string;
   scoringKeywords?: string[];
   minLength?: number;
 }
@@ -223,9 +269,13 @@ export interface ActiveLearningPrompt {
 export interface PracticeExercise {
   id: string;
   title: string;
+  titleAr?: string;
   instructions: string;
+  instructionsAr?: string;
   hints?: string[];
+  hintsAr?: string[];
   modelAnswer: string;
+  modelAnswerAr?: string;
   scoringCriteria: string[];
   difficulty: 'guided' | 'independent' | 'professional';
 }
@@ -233,40 +283,60 @@ export interface PracticeExercise {
 export interface DecisionScenario {
   id: string;
   title: string;
+  titleAr?: string;
   context: string;
+  contextAr?: string;
   conflict?: string;
+  conflictAr?: string;
   question: string;
+  questionAr?: string;
   options?: string[];
+  optionsAr?: string[];
   modelAnswer: string;
+  modelAnswerAr?: string;
   feedbackRubric: string[];
 }
 
 export interface ArtifactActivity {
   id: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   template: string;
+  templateAr?: string;
   instructions: string;
+  instructionsAr?: string;
   modelArtifact: string;
+  modelArtifactAr?: string;
   scoringCriteria: string[];
   requiredFields: string[];
 }
 
 export interface CaseStudyUpdate {
   dayFocus: string;
+  dayFocusAr?: string;
   narrative: string;
+  narrativeAr?: string;
   newInformation: string;
+  newInformationAr?: string;
   requiredAction: string;
+  requiredActionAr?: string;
   modelResponse: string;
+  modelResponseAr?: string;
 }
 
 export interface QuizQuestion {
   id: string;
   type: 'multiple_choice' | 'scenario' | 'short_answer' | 'identify' | 'prioritize' | 'compare';
   question: string;
+  questionAr?: string;
   options?: string[];
+  optionsAr?: string[];
   correctAnswer: string;
+  correctAnswerAr?: string;
   explanation: string;
+  explanationAr?: string;
   topic: TopicKey;
   points: number;
   feedback?: ProfessionalFeedbackTemplate;
@@ -282,8 +352,11 @@ export interface ProfessionalFeedbackTemplate {
 
 export interface InterviewPrep {
   question: string;
+  questionAr?: string;
   modelAnswer: string;
+  modelAnswerAr?: string;
   followUps: string[];
+  followUpsAr?: string[];
   scoringCriteria: string[];
 }
 

@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import type { ArtifactActivity, DecisionScenario, PracticeExercise } from '@/po/types';
 import { buildProfessionalFeedback, type FeedbackResult } from '@/po/engine/feedback';
+import { useProgressStore } from '@/po/store/useProgress';
+import { pickLang } from '@/po/curriculum/localize';
+import { t } from '@/po/i18n';
 import { FeedbackCard } from './TheorySection';
 
 export function ExercisePanel({
@@ -10,9 +13,15 @@ export function ExercisePanel({
   exercise: PracticeExercise;
   onScored: (score: number) => void;
 }) {
+  const lang = useProgressStore((s) => s.settings.language);
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
   const [showModel, setShowModel] = useState(false);
+
+  const title = pickLang(lang, exercise.title, exercise.titleAr);
+  const instructions = pickLang(lang, exercise.instructions, exercise.instructionsAr);
+  const hints = pickLang(lang, exercise.hints, exercise.hintsAr);
+  const modelAnswer = pickLang(lang, exercise.modelAnswer, exercise.modelAnswerAr);
 
   const submit = () => {
     const fb = buildProfessionalFeedback({
@@ -28,12 +37,14 @@ export function ExercisePanel({
   return (
     <div className="space-y-4">
       <div className="card">
-        <p className="text-xs uppercase tracking-wide text-accent font-semibold">{exercise.difficulty} exercise</p>
-        <h2 className="text-lg font-bold mt-1">{exercise.title}</h2>
-        <p className="text-text-secondary mt-2 whitespace-pre-wrap">{exercise.instructions}</p>
-        {exercise.hints && exercise.hints.length > 0 && (
+        <p className="text-xs uppercase tracking-wide text-accent font-semibold">
+          {lang === 'ar' ? `تمرين ${exercise.difficulty}` : `${exercise.difficulty} exercise`}
+        </p>
+        <h2 className="text-lg font-bold mt-1">{title}</h2>
+        <p className="text-text-secondary mt-2 whitespace-pre-wrap">{instructions}</p>
+        {hints && hints.length > 0 && (
           <ul className="mt-3 text-sm text-warning list-disc ps-5 space-y-1">
-            {exercise.hints.map((h) => <li key={h}>{h}</li>)}
+            {hints.map((h) => <li key={h}>{h}</li>)}
           </ul>
         )}
       </div>
@@ -41,16 +52,20 @@ export function ExercisePanel({
         className="input-field min-h-[180px]"
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Write a complete professional response..."
+        placeholder={lang === 'ar' ? 'اكتب ردًا مهنيًا كاملاً...' : 'Write a complete professional response...'}
       />
       <div className="flex gap-2">
-        <button className="btn-primary" onClick={submit} disabled={answer.trim().length < 30}>Submit for Feedback</button>
+        <button className="btn-primary" onClick={submit} disabled={answer.trim().length < 30}>
+          {lang === 'ar' ? 'إرسال للملاحظات' : 'Submit for Feedback'}
+        </button>
         <button className="btn-secondary" onClick={() => setShowModel((s) => !s)}>
-          {showModel ? 'Hide Model Answer' : 'Show Model Answer'}
+          {showModel
+            ? (lang === 'ar' ? 'إخفاء الإجابة النموذجية' : 'Hide Model Answer')
+            : (lang === 'ar' ? 'عرض الإجابة النموذجية' : 'Show Model Answer')}
         </button>
       </div>
       {showModel && (
-        <div className="card text-sm whitespace-pre-wrap text-text-secondary">{exercise.modelAnswer}</div>
+        <div className="card text-sm whitespace-pre-wrap text-text-secondary">{modelAnswer}</div>
       )}
       {feedback && <FeedbackCard feedback={feedback} />}
     </div>
@@ -64,9 +79,17 @@ export function ScenarioPanel({
   scenario: DecisionScenario;
   onScored: (score: number) => void;
 }) {
+  const lang = useProgressStore((s) => s.settings.language);
   const [answer, setAnswer] = useState('');
   const [selected, setSelected] = useState('');
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
+
+  const title = pickLang(lang, scenario.title, scenario.titleAr);
+  const context = pickLang(lang, scenario.context, scenario.contextAr);
+  const conflict = pickLang(lang, scenario.conflict, scenario.conflictAr);
+  const question = pickLang(lang, scenario.question, scenario.questionAr);
+  const options = pickLang(lang, scenario.options, scenario.optionsAr);
+  const modelAnswer = pickLang(lang, scenario.modelAnswer, scenario.modelAnswerAr);
 
   const submit = () => {
     const combined = scenario.options
@@ -85,46 +108,51 @@ export function ScenarioPanel({
   return (
     <div className="space-y-4">
       <div className="card space-y-2">
-        <h2 className="text-lg font-bold">{scenario.title}</h2>
-        <p className="text-text-secondary whitespace-pre-wrap">{scenario.context}</p>
-        {scenario.conflict && (
-          <p className="text-sm border-l-4 border-warning ps-3 text-text-secondary">{scenario.conflict}</p>
+        <h2 className="text-lg font-bold">{title}</h2>
+        <p className="text-text-secondary whitespace-pre-wrap">{context}</p>
+        {conflict && (
+          <p className="text-sm border-l-4 border-warning ps-3 text-text-secondary">{conflict}</p>
         )}
-        <p className="font-medium text-text-primary mt-2">{scenario.question}</p>
+        <p className="font-medium text-text-primary mt-2">{question}</p>
       </div>
-      {scenario.options && (
+      {scenario.options && options && (
         <div className="space-y-2">
-          {scenario.options.map((opt) => (
-            <button
-              key={opt}
-              onClick={() => setSelected(opt)}
-              className={`w-full text-left px-4 py-3 rounded-md border ${
-                selected === opt ? 'border-accent bg-accent-muted text-accent' : 'border-border'
-              }`}
-            >
-              {opt}
-            </button>
-          ))}
+          {scenario.options.map((opt, i) => {
+            const label = options[i] ?? opt;
+            return (
+              <button
+                key={opt}
+                onClick={() => setSelected(opt)}
+                className={`w-full text-start px-4 py-3 rounded-md border ${
+                  selected === opt ? 'border-accent bg-accent-muted text-accent' : 'border-border'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       )}
       <textarea
         className="input-field min-h-[140px]"
         value={answer}
         onChange={(e) => setAnswer(e.target.value)}
-        placeholder="Justify your Product Owner decision professionally..."
+        placeholder={lang === 'ar'
+          ? 'برّر قرار مالك المنتج بشكل مهني...'
+          : 'Justify your Product Owner decision professionally...'}
       />
       <button
         className="btn-primary"
         onClick={submit}
         disabled={answer.trim().length < 30 || (!!scenario.options && !selected)}
       >
-        Submit Decision
+        {lang === 'ar' ? 'إرسال القرار' : 'Submit Decision'}
       </button>
       {feedback && <FeedbackCard feedback={feedback} />}
       {feedback && (
         <div className="card text-sm whitespace-pre-wrap text-text-secondary">
-          <p className="font-medium text-text-primary mb-2">Model Answer</p>
-          {scenario.modelAnswer}
+          <p className="font-medium text-text-primary mb-2">{t('modelAnswer', lang)}</p>
+          {modelAnswer}
         </div>
       )}
     </div>
@@ -140,7 +168,14 @@ export function ArtifactPanel({
   saved?: string;
   onScored: (submission: string, score: number) => void;
 }) {
-  const [answer, setAnswer] = useState(saved || artifact.template);
+  const lang = useProgressStore((s) => s.settings.language);
+  const title = pickLang(lang, artifact.title, artifact.titleAr);
+  const description = pickLang(lang, artifact.description, artifact.descriptionAr);
+  const instructions = pickLang(lang, artifact.instructions, artifact.instructionsAr);
+  const template = pickLang(lang, artifact.template, artifact.templateAr);
+  const modelArtifact = pickLang(lang, artifact.modelArtifact, artifact.modelArtifactAr);
+
+  const [answer, setAnswer] = useState(saved || template);
   const [feedback, setFeedback] = useState<FeedbackResult | null>(null);
   const [showModel, setShowModel] = useState(false);
 
@@ -159,9 +194,9 @@ export function ArtifactPanel({
   return (
     <div className="space-y-4">
       <div className="card space-y-2">
-        <h2 className="text-lg font-bold">{artifact.title}</h2>
-        <p className="text-text-secondary">{artifact.description}</p>
-        <p className="text-sm text-text-muted whitespace-pre-wrap">{artifact.instructions}</p>
+        <h2 className="text-lg font-bold">{title}</h2>
+        <p className="text-text-secondary">{description}</p>
+        <p className="text-sm text-text-muted whitespace-pre-wrap">{instructions}</p>
       </div>
       <textarea
         className="input-field min-h-[320px] font-mono text-sm"
@@ -170,14 +205,16 @@ export function ArtifactPanel({
       />
       <div className="flex gap-2">
         <button className="btn-primary" onClick={submit} disabled={answer.trim().length < 80}>
-          Submit Artifact
+          {lang === 'ar' ? 'إرسال المخرج' : 'Submit Artifact'}
         </button>
         <button className="btn-secondary" onClick={() => setShowModel((s) => !s)}>
-          {showModel ? 'Hide Model Artifact' : 'Show Model Artifact'}
+          {showModel
+            ? (lang === 'ar' ? 'إخفاء المخرج النموذجي' : 'Hide Model Artifact')
+            : (lang === 'ar' ? 'عرض المخرج النموذجي' : 'Show Model Artifact')}
         </button>
       </div>
       {showModel && (
-        <div className="card text-sm whitespace-pre-wrap font-mono text-text-secondary">{artifact.modelArtifact}</div>
+        <div className="card text-sm whitespace-pre-wrap font-mono text-text-secondary">{modelArtifact}</div>
       )}
       {feedback && <FeedbackCard feedback={feedback} />}
     </div>

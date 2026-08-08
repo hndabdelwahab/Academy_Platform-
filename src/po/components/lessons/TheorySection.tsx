@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import type { SectionContent, ActiveLearningPrompt } from '@/po/types';
+import type { SectionContent, ActiveLearningPrompt, SectionContentLocale } from '@/po/types';
 import { buildProfessionalFeedback } from '@/po/engine/feedback';
+import { useProgressStore } from '@/po/store/useProgress';
+import { localizedMistakes, localizedSectionText, localizedSteps, localizedTable } from '@/po/curriculum/localize';
+import { t } from '@/po/i18n';
 import { ChevronDown, ChevronRight, Lock } from 'lucide-react';
 
 interface TheorySectionProps {
@@ -13,7 +16,7 @@ interface TheorySectionProps {
   onSaveAnswer: (answer: string) => void;
 }
 
-const TEXT_BLOCKS: { key: keyof SectionContent; label: string; labelAr: string }[] = [
+const TEXT_BLOCKS: { key: keyof SectionContentLocale; label: string; labelAr: string }[] = [
   { key: 'conceptIntroduction', label: 'Concept Introduction', labelAr: 'مقدمة المفهوم' },
   { key: 'simpleExplanation', label: 'Simple Explanation', labelAr: 'شرح بسيط' },
   { key: 'businessProblem', label: 'Business / Delivery Problem', labelAr: 'مشكلة العمل أو التسليم' },
@@ -52,6 +55,7 @@ export function TheorySection({
   savedAnswer,
   onSaveAnswer,
 }: TheorySectionProps) {
+  const lang = useProgressStore((s) => s.settings.language);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({
     conceptIntroduction: true,
     simpleExplanation: true,
@@ -60,9 +64,18 @@ export function TheorySection({
   const [answered, setAnswered] = useState(!!savedAnswer);
   const [showModel, setShowModel] = useState(false);
   const [feedback, setFeedback] = useState<ReturnType<typeof buildProfessionalFeedback> | null>(null);
-  const lang = (typeof document !== 'undefined' && document.documentElement.dir === 'rtl') ? 'ar' : 'en';
 
   const toggle = (key: string) => setExpanded((p) => ({ ...p, [key]: !p[key] }));
+
+  const promptQuestion = lang === 'ar' && requiresAnswer?.questionAr
+    ? requiresAnswer.questionAr
+    : requiresAnswer?.question;
+  const promptHint = lang === 'ar' && requiresAnswer?.hintAr
+    ? requiresAnswer.hintAr
+    : requiresAnswer?.hint;
+  const promptModel = lang === 'ar' && requiresAnswer?.modelAnswerAr
+    ? requiresAnswer.modelAnswerAr
+    : requiresAnswer?.modelAnswer;
 
   const handleSubmitAnswer = () => {
     const min = requiresAnswer?.minLength ?? 20;
@@ -80,17 +93,21 @@ export function TheorySection({
   };
 
   const canContinue = !requiresAnswer || answered;
+  const processSteps = localizedSteps(content, lang);
+  const comparisonTable = localizedTable(content, lang);
+  const beginnerMistakes = localizedMistakes(content, 'beginnerMistakes', lang);
+  const workplaceMistakes = localizedMistakes(content, 'workplaceMistakes', lang);
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-text-primary">{title}</h2>
 
       {TEXT_BLOCKS.map(({ key, label, labelAr }) => {
-        const text = content[key];
-        if (!text || typeof text !== 'string') return null;
+        const text = localizedSectionText(content, key, lang);
+        if (!text) return null;
         return (
           <div key={key} className="content-block">
-            <button onClick={() => toggle(key)} className="flex items-center gap-2 w-full text-left">
+            <button onClick={() => toggle(key)} className="flex items-center gap-2 w-full text-start">
               {expanded[key] ? <ChevronDown className="w-4 h-4 text-accent" /> : <ChevronRight className="w-4 h-4 text-text-muted" />}
               <span className="content-label mb-0">{lang === 'ar' ? labelAr : label}</span>
             </button>
@@ -101,11 +118,11 @@ export function TheorySection({
         );
       })}
 
-      {content.processSteps && content.processSteps.length > 0 && (
+      {processSteps && processSteps.length > 0 && (
         <div className="content-block">
-          <p className="content-label">Process / Lifecycle</p>
+          <p className="content-label">{lang === 'ar' ? 'العملية / دورة الحياة' : 'Process / Lifecycle'}</p>
           <ol className="mt-3 space-y-3">
-            {content.processSteps.map((step, i) => (
+            {processSteps.map((step, i) => (
               <li key={step.id} className="flex gap-3">
                 <span className="w-7 h-7 rounded-full bg-accent text-white text-sm flex items-center justify-center shrink-0">{i + 1}</span>
                 <div>
@@ -118,19 +135,19 @@ export function TheorySection({
         </div>
       )}
 
-      {content.comparisonTable && (
+      {comparisonTable && (
         <div className="content-block overflow-x-auto">
-          <p className="content-label">{content.comparisonTable.title}</p>
+          <p className="content-label">{comparisonTable.title}</p>
           <table className="w-full text-sm mt-3 border-collapse">
             <thead>
               <tr>
-                {content.comparisonTable.headers.map((h) => (
-                  <th key={h} className="text-left p-2 border-b border-border text-text-primary">{h}</th>
+                {comparisonTable.headers.map((h) => (
+                  <th key={h} className="text-start p-2 border-b border-border text-text-primary">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {content.comparisonTable.rows.map((row, i) => (
+              {comparisonTable.rows.map((row, i) => (
                 <tr key={i} className="border-b border-border/50">
                   {row.map((cell, j) => (
                     <td key={j} className="p-2 text-text-secondary align-top">{cell}</td>
@@ -142,14 +159,14 @@ export function TheorySection({
         </div>
       )}
 
-      {content.beginnerMistakes && content.beginnerMistakes.length > 0 && (
+      {beginnerMistakes && beginnerMistakes.length > 0 && (
         <div className="content-block">
-          <p className="content-label">Common Beginner Mistakes</p>
+          <p className="content-label">{lang === 'ar' ? 'أخطاء المبتدئين الشائعة' : 'Common Beginner Mistakes'}</p>
           <div className="space-y-3 mt-2">
-            {content.beginnerMistakes.map((m, i) => (
+            {beginnerMistakes.map((m, i) => (
               <div key={i} className="text-sm space-y-1">
-                <p className="text-danger"><span className="font-medium">Wrong:</span> {m.wrong}</p>
-                <p className="text-success"><span className="font-medium">Right:</span> {m.right}</p>
+                <p className="text-danger"><span className="font-medium">{lang === 'ar' ? 'خطأ:' : 'Wrong:'}</span> {m.wrong}</p>
+                <p className="text-success"><span className="font-medium">{lang === 'ar' ? 'صحيح:' : 'Right:'}</span> {m.right}</p>
                 <p className="text-text-muted">{m.explanation}</p>
               </div>
             ))}
@@ -157,14 +174,14 @@ export function TheorySection({
         </div>
       )}
 
-      {content.workplaceMistakes && content.workplaceMistakes.length > 0 && (
+      {workplaceMistakes && workplaceMistakes.length > 0 && (
         <div className="content-block">
-          <p className="content-label">Common Workplace Mistakes</p>
+          <p className="content-label">{lang === 'ar' ? 'أخطاء شائعة في بيئة العمل' : 'Common Workplace Mistakes'}</p>
           <div className="space-y-3 mt-2">
-            {content.workplaceMistakes.map((m, i) => (
+            {workplaceMistakes.map((m, i) => (
               <div key={i} className="text-sm space-y-1">
-                <p className="text-danger"><span className="font-medium">Wrong:</span> {m.wrong}</p>
-                <p className="text-success"><span className="font-medium">Right:</span> {m.right}</p>
+                <p className="text-danger"><span className="font-medium">{lang === 'ar' ? 'خطأ:' : 'Wrong:'}</span> {m.wrong}</p>
+                <p className="text-success"><span className="font-medium">{lang === 'ar' ? 'صحيح:' : 'Right:'}</span> {m.right}</p>
                 <p className="text-text-muted">{m.explanation}</p>
               </div>
             ))}
@@ -174,17 +191,21 @@ export function TheorySection({
 
       {requiresAnswer && (
         <div className="card border-accent/40 space-y-3">
-          <p className="font-medium text-text-primary">Active Learning — required before continuing</p>
-          <p className="text-text-secondary">{requiresAnswer.question}</p>
-          {requiresAnswer.hint && !answered && (
-            <p className="text-sm text-warning">Hint: {requiresAnswer.hint}</p>
+          <p className="font-medium text-text-primary">
+            {lang === 'ar' ? 'تعلم نشط — مطلوب قبل المتابعة' : 'Active Learning — required before continuing'}
+          </p>
+          <p className="text-text-secondary">{promptQuestion}</p>
+          {promptHint && !answered && (
+            <p className="text-sm text-warning">{lang === 'ar' ? `تلميح: ${promptHint}` : `Hint: ${promptHint}`}</p>
           )}
           <textarea
             className="input-field min-h-[120px]"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             disabled={answered}
-            placeholder="Write a complete answer. Short or vague answers will receive critical feedback."
+            placeholder={lang === 'ar'
+              ? 'اكتب إجابة كاملة. الإجابات القصيرة أو المبهمة ستحصل على ملاحظات نقدية.'
+              : 'Write a complete answer. Short or vague answers will receive critical feedback.'}
           />
           {!answered ? (
             <button
@@ -192,17 +213,19 @@ export function TheorySection({
               disabled={answer.trim().length < (requiresAnswer.minLength ?? 20)}
               className="btn-primary"
             >
-              Submit Answer
+              {t('submit', lang)}
             </button>
           ) : (
             <div className="space-y-3">
               {feedback && <FeedbackCard feedback={feedback} />}
               <button onClick={() => setShowModel((s) => !s)} className="btn-secondary">
-                {showModel ? 'Hide Model Answer' : 'Show Model Answer'}
+                {showModel
+                  ? (lang === 'ar' ? 'إخفاء الإجابة النموذجية' : 'Hide Model Answer')
+                  : (lang === 'ar' ? 'عرض الإجابة النموذجية' : 'Show Model Answer')}
               </button>
-              {showModel && requiresAnswer.modelAnswer && (
+              {showModel && promptModel && (
                 <div className="p-3 bg-surface rounded-md text-sm text-text-secondary whitespace-pre-wrap">
-                  {requiresAnswer.modelAnswer}
+                  {promptModel}
                 </div>
               )}
             </div>
@@ -212,30 +235,67 @@ export function TheorySection({
 
       <button onClick={onComplete} disabled={!canContinue} className="btn-primary flex items-center gap-2">
         {!canContinue && <Lock className="w-4 h-4" />}
-        Mark Section Complete & Continue
+        {lang === 'ar' ? 'إكمال القسم والمتابعة' : 'Mark Section Complete & Continue'}
       </button>
     </div>
   );
 }
 
 export function FeedbackCard({ feedback }: { feedback: ReturnType<typeof buildProfessionalFeedback> }) {
+  const lang = useProgressStore((s) => s.settings.language);
+  const labels = lang === 'ar'
+    ? {
+        title: 'ملاحظات مهنية — الدرجة',
+        correct: 'ما هو صحيح:',
+        incorrect: 'ما هو غير صحيح / ضعيف:',
+        unclear: 'ما هو غير واضح:',
+        missing: 'ما هو ناقص:',
+        whyMissing: 'لماذا يهم النقص:',
+        solving: 'الحل مقابل التكرار:',
+        value: 'قيمة المستخدم / العمل:',
+        testable: 'قابلية الاختبار:',
+        rules: 'قواعد العمل:',
+        permissions: 'الصلاحيات / الحالات الحدية:',
+        responsibility: 'مسؤولية مالك المنتج الصحيحة؟:',
+        better: 'نسخة مهنية أفضل:',
+        revision: 'مراجعة موصى بها:',
+        next: 'خطوة التدريب التالية:',
+      }
+    : {
+        title: 'Professional Feedback — Score',
+        correct: 'What is correct:',
+        incorrect: 'What is incorrect / weak:',
+        unclear: 'What is unclear:',
+        missing: 'What is missing:',
+        whyMissing: 'Why missing information matters:',
+        solving: 'Solving vs repeating:',
+        value: 'User / business value:',
+        testable: 'Testability:',
+        rules: 'Business rules:',
+        permissions: 'Permissions / edge cases:',
+        responsibility: 'Correct PO responsibility?:',
+        better: 'Better professional version:',
+        revision: 'Recommended revision:',
+        next: 'Next practice step:',
+      };
+
   return (
     <div className={`p-4 rounded-md border space-y-2 text-sm ${feedback.isPassing ? 'border-success/40 bg-success/5' : 'border-warning/40 bg-warning/5'}`}>
-      <p className="font-semibold text-text-primary">Professional Feedback — Score {feedback.score}%</p>
-      <p><span className="text-success font-medium">What is correct:</span> {feedback.whatCorrect}</p>
-      <p><span className="text-danger font-medium">What is incorrect / weak:</span> {feedback.whatIncorrect}</p>
-      <p><span className="font-medium">What is unclear:</span> {feedback.whatUnclear}</p>
-      <p><span className="font-medium">What is missing:</span> {feedback.whatMissing}</p>
-      <p><span className="font-medium">Why missing information matters:</span> {feedback.whyMissingMatters}</p>
-      <p><span className="font-medium">Solving vs repeating:</span> {feedback.solvingVsRepeating}</p>
-      <p><span className="font-medium">User / business value:</span> {feedback.userBusinessValue}</p>
-      <p><span className="font-medium">Testability:</span> {feedback.testable}</p>
-      <p><span className="font-medium">Business rules:</span> {feedback.businessRules}</p>
-      <p><span className="font-medium">Permissions / edge cases:</span> {feedback.permissionsEdgeCases}</p>
-      <p><span className="font-medium">Correct PO responsibility?:</span> {feedback.correctResponsibility}</p>
-      <p><span className="font-medium">Better professional version:</span> {feedback.betterVersion}</p>
-      <p><span className="font-medium">Recommended revision:</span> {feedback.recommendedRevision}</p>
-      <p><span className="font-medium">Next practice step:</span> {feedback.nextPracticeStep}</p>
+      <p className="font-semibold text-text-primary">{labels.title} {feedback.score}%</p>
+      <p><span className="text-success font-medium">{labels.correct}</span> {feedback.whatCorrect}</p>
+      <p><span className="text-danger font-medium">{labels.incorrect}</span> {feedback.whatIncorrect}</p>
+      <p><span className="font-medium">{labels.unclear}</span> {feedback.whatUnclear}</p>
+      <p><span className="font-medium">{labels.missing}</span> {feedback.whatMissing}</p>
+      <p><span className="font-medium">{labels.whyMissing}</span> {feedback.whyMissingMatters}</p>
+      <p><span className="font-medium">{labels.solving}</span> {feedback.solvingVsRepeating}</p>
+      <p><span className="font-medium">{labels.value}</span> {feedback.userBusinessValue}</p>
+      <p><span className="font-medium">{labels.testable}</span> {feedback.testable}</p>
+      <p><span className="font-medium">{labels.rules}</span> {feedback.businessRules}</p>
+      <p><span className="font-medium">{labels.permissions}</span> {feedback.permissionsEdgeCases}</p>
+      <p><span className="font-medium">{labels.responsibility}</span> {feedback.correctResponsibility}</p>
+      <p><span className="font-medium">{labels.better}</span> {feedback.betterVersion}</p>
+      <p><span className="font-medium">{labels.revision}</span> {feedback.recommendedRevision}</p>
+      <p><span className="font-medium">{labels.next}</span> {feedback.nextPracticeStep}</p>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { TheorySection } from '@/po/components/lessons/TheorySection';
 import { ExercisePanel, ScenarioPanel, ArtifactPanel } from '@/po/components/lessons/PracticePanel';
 import { QuizEngine } from '@/po/components/quiz/QuizEngine';
 import { t } from '@/po/i18n';
+import { pickLang } from '@/po/curriculum/localize';
 import {
   BookOpen, PenLine, Users, Scale, FileBadge, HelpCircle, FileCheck,
   ArrowLeft, CheckCircle, ListChecks, Briefcase, Lock, Newspaper,
@@ -149,7 +150,9 @@ export function DayPage() {
       {activeTab === 'lesson' && section && (
         <div>
           <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
-            Section {sectionIndex + 1} of {curriculum.sections.length}
+            {lang === 'ar'
+              ? `القسم ${sectionIndex + 1} من ${curriculum.sections.length}`
+              : `Section ${sectionIndex + 1} of ${curriculum.sections.length}`}
             {dayProgress.sectionProgress[section.id] && <CheckCircle className="w-4 h-4 text-success" />}
           </div>
           <TheorySection
@@ -165,8 +168,12 @@ export function DayPage() {
             }}
           />
           <div className="flex justify-between mt-4">
-            <button onClick={() => setSectionIndex(Math.max(0, sectionIndex - 1))} disabled={sectionIndex === 0} className="btn-secondary">Previous Section</button>
-            <button onClick={() => setSectionIndex(Math.min(curriculum.sections.length - 1, sectionIndex + 1))} disabled={sectionIndex === curriculum.sections.length - 1} className="btn-secondary">Next Section</button>
+            <button onClick={() => setSectionIndex(Math.max(0, sectionIndex - 1))} disabled={sectionIndex === 0} className="btn-secondary">
+              {lang === 'ar' ? 'القسم السابق' : 'Previous Section'}
+            </button>
+            <button onClick={() => setSectionIndex(Math.min(curriculum.sections.length - 1, sectionIndex + 1))} disabled={sectionIndex === curriculum.sections.length - 1} className="btn-secondary">
+              {lang === 'ar' ? 'القسم التالي' : 'Next Section'}
+            </button>
           </div>
         </div>
       )}
@@ -237,14 +244,22 @@ export function DayPage() {
         <div className="space-y-4">
           <div className="card space-y-2">
             <h2 className="text-lg font-bold">{t('caseStudy', lang)}</h2>
-            <p className="text-accent text-sm font-medium">{curriculum.caseStudyUpdate.dayFocus}</p>
-            <p className="text-text-secondary whitespace-pre-wrap">{curriculum.caseStudyUpdate.narrative}</p>
-            <p className="text-sm border-l-4 border-accent ps-3">{curriculum.caseStudyUpdate.newInformation}</p>
-            <p className="font-medium">{curriculum.caseStudyUpdate.requiredAction}</p>
+            <p className="text-accent text-sm font-medium">
+              {pickLang(lang, curriculum.caseStudyUpdate.dayFocus, curriculum.caseStudyUpdate.dayFocusAr)}
+            </p>
+            <p className="text-text-secondary whitespace-pre-wrap">
+              {pickLang(lang, curriculum.caseStudyUpdate.narrative, curriculum.caseStudyUpdate.narrativeAr)}
+            </p>
+            <p className="text-sm border-l-4 border-accent ps-3">
+              {pickLang(lang, curriculum.caseStudyUpdate.newInformation, curriculum.caseStudyUpdate.newInformationAr)}
+            </p>
+            <p className="font-medium">
+              {pickLang(lang, curriculum.caseStudyUpdate.requiredAction, curriculum.caseStudyUpdate.requiredActionAr)}
+            </p>
           </div>
           <CaseStudyResponse
             dayNumber={dayNumber}
-            model={curriculum.caseStudyUpdate.modelResponse}
+            model={pickLang(lang, curriculum.caseStudyUpdate.modelResponse, curriculum.caseStudyUpdate.modelResponseAr)}
             onDone={(score) => {
               store.markActivityComplete(dayNumber, `case-${dayNumber}`);
               store.updateThinkingScore('problemAnalysis', score > 70 ? 4 : 1);
@@ -286,15 +301,21 @@ export function DayPage() {
       {activeTab === 'interview' && (
         <div className="card space-y-3">
           <h2 className="text-lg font-bold">{t('interviewPrep', lang)}</h2>
-          <p className="font-medium">{curriculum.interviewPrep.question}</p>
+          <p className="font-medium">{pickLang(lang, curriculum.interviewPrep.question, curriculum.interviewPrep.questionAr)}</p>
           <details className="text-sm">
-            <summary className="cursor-pointer text-accent">Show model answer</summary>
-            <p className="mt-2 text-text-secondary whitespace-pre-wrap">{curriculum.interviewPrep.modelAnswer}</p>
+            <summary className="cursor-pointer text-accent">
+              {lang === 'ar' ? 'عرض الإجابة النموذجية' : 'Show model answer'}
+            </summary>
+            <p className="mt-2 text-text-secondary whitespace-pre-wrap">
+              {pickLang(lang, curriculum.interviewPrep.modelAnswer, curriculum.interviewPrep.modelAnswerAr)}
+            </p>
           </details>
           <div>
-            <p className="text-sm font-medium mb-1">Follow-ups</p>
+            <p className="text-sm font-medium mb-1">{lang === 'ar' ? 'أسئلة متابعة' : 'Follow-ups'}</p>
             <ul className="list-disc ps-5 text-sm text-text-secondary space-y-1">
-              {curriculum.interviewPrep.followUps.map((f) => <li key={f}>{f}</li>)}
+              {pickLang(lang, curriculum.interviewPrep.followUps, curriculum.interviewPrep.followUpsAr).map((f) => (
+                <li key={f}>{f}</li>
+              ))}
             </ul>
           </div>
         </div>
@@ -305,23 +326,37 @@ export function DayPage() {
           <div className="card">
             <h3 className="font-semibold mb-2">{t('summary', lang)}</h3>
             <ul className="list-disc ps-5 text-sm text-text-secondary space-y-1">
-              {curriculum.lessonSummary.map((s) => <li key={s}>{s}</li>)}
+              {pickLang(lang, curriculum.lessonSummary, curriculum.lessonSummaryAr).map((s) => <li key={s}>{s}</li>)}
             </ul>
           </div>
           <div className="grid md:grid-cols-2 gap-4">
             <div className="card">
-              <h3 className="font-semibold mb-2 text-success">Product Owner Responsibility</h3>
-              <ul className="list-disc ps-5 text-sm space-y-1">{curriculum.productOwnerResponsibility.map((x) => <li key={x}>{x}</li>)}</ul>
+              <h3 className="font-semibold mb-2 text-success">
+                {lang === 'ar' ? 'مسؤولية مالك المنتج' : 'Product Owner Responsibility'}
+              </h3>
+              <ul className="list-disc ps-5 text-sm space-y-1">
+                {pickLang(lang, curriculum.productOwnerResponsibility, curriculum.productOwnerResponsibilityAr).map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
             </div>
             <div className="card">
-              <h3 className="font-semibold mb-2 text-danger">Not the Product Owner's Responsibility</h3>
-              <ul className="list-disc ps-5 text-sm space-y-1">{curriculum.notProductOwnerResponsibility.map((x) => <li key={x}>{x}</li>)}</ul>
+              <h3 className="font-semibold mb-2 text-danger">
+                {lang === 'ar' ? 'ليست من مسؤولية مالك المنتج' : "Not the Product Owner's Responsibility"}
+              </h3>
+              <ul className="list-disc ps-5 text-sm space-y-1">
+                {pickLang(lang, curriculum.notProductOwnerResponsibility, curriculum.notProductOwnerResponsibilityAr).map((x) => (
+                  <li key={x}>{x}</li>
+                ))}
+              </ul>
             </div>
           </div>
           <div className="card">
             <h3 className="font-semibold mb-2">{t('revisionChecklist', lang)}</h3>
             <ul className="space-y-1 text-sm">
-              {curriculum.revisionChecklist.map((item) => <li key={item}>☐ {item}</li>)}
+              {pickLang(lang, curriculum.revisionChecklist, curriculum.revisionChecklistAr).map((item) => (
+                <li key={item}>☐ {item}</li>
+              ))}
             </ul>
           </div>
           <ExercisePanel
@@ -354,6 +389,7 @@ function CaseStudyResponse({
   onDone: (score: number) => void;
 }) {
   const store = useProgressStore();
+  const lang = store.settings.language;
   const [answer, setAnswer] = useState(store.caseStudyNotes[`day-${dayNumber}`] ?? '');
   const [done, setDone] = useState(false);
 
@@ -370,11 +406,13 @@ function CaseStudyResponse({
           onDone(score);
         }}
       >
-        Save Case Study Response
+        {lang === 'ar' ? 'حفظ رد دراسة الحالة' : 'Save Case Study Response'}
       </button>
       {done && (
         <div className="card text-sm whitespace-pre-wrap text-text-secondary">
-          <p className="font-medium text-text-primary mb-2">Model Response</p>
+          <p className="font-medium text-text-primary mb-2">
+            {lang === 'ar' ? 'الرد النموذجي' : 'Model Response'}
+          </p>
           {model}
         </div>
       )}

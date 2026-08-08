@@ -1,5 +1,6 @@
 import type { DayCurriculum, DayProgress } from '@/po/types';
-import { day01 } from './day-01';
+import { finalizeDay01 } from './day-01-ar';
+import { day01 as day01Raw } from './day-01';
 import { day02 } from './day-02';
 import { day03 } from './day-03';
 import { day04 } from './day-04';
@@ -19,6 +20,8 @@ import { day17 } from './day-17';
 import { day18 } from './day-18';
 import { day19 } from './day-19';
 import { day20 } from './day-20';
+
+const day01 = finalizeDay01(day01Raw);
 
 const curriculumMap: Record<number, DayCurriculum> = {
   1: day01,

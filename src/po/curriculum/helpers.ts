@@ -42,6 +42,7 @@ export function mcq(
   correctAnswer: string,
   explanation: string,
   points = 10,
+  ar?: { question?: string; options?: string[]; correctAnswer?: string; explanation?: string },
 ): QuizQuestion {
   return {
     id,
@@ -52,6 +53,10 @@ export function mcq(
     correctAnswer,
     explanation,
     points,
+    questionAr: ar?.question,
+    optionsAr: ar?.options,
+    correctAnswerAr: ar?.correctAnswer,
+    explanationAr: ar?.explanation,
   };
 }
 
@@ -63,6 +68,7 @@ export function scenarioQ(
   correctAnswer: string,
   explanation: string,
   points = 15,
+  ar?: { question?: string; options?: string[]; correctAnswer?: string; explanation?: string },
 ): QuizQuestion {
   return {
     id,
@@ -73,6 +79,10 @@ export function scenarioQ(
     correctAnswer,
     explanation,
     points,
+    questionAr: ar?.question,
+    optionsAr: ar?.options,
+    correctAnswerAr: ar?.correctAnswer,
+    explanationAr: ar?.explanation,
   };
 }
 
@@ -133,6 +143,7 @@ export function prompt(
   modelAnswer: string,
   hint?: string,
   scoringKeywords?: string[],
+  ar?: { question?: string; modelAnswer?: string; hint?: string },
 ): ActiveLearningPrompt {
   return {
     question,
@@ -141,6 +152,9 @@ export function prompt(
     hint,
     scoringKeywords,
     minLength: type === 'write' ? 40 : 20,
+    questionAr: ar?.question,
+    modelAnswerAr: ar?.modelAnswer,
+    hintAr: ar?.hint,
   };
 }
 
